@@ -22,6 +22,7 @@ Pembukuan Kynan adalah sebuah aplikasi web yang dirancang untuk mempermudah UMKM
    ```bash
    git clone https://github.com/mmararief/pembukuan-kynan.git
    cd pembukuan-kynan
+   npm install
    npm run dev
    ```
 

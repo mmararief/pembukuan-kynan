@@ -6,7 +6,13 @@ import HeaderMobile from "@/components/header-mobile";
 import SideNav from "@/components/side-nav";
 import PageWrapper from "@/components/page-wrapper";
 import MarginWidthWrapper from "@/components/margin-width-wrapper";
-const inter = Inter({ subsets: ["latin"] });
+import { Inter as FontSans } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,7 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={` bg-white ${inter.className}`}>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}
+      >
         <div className="flex">
           <SideNav />
           <main className="flex-1">
@@ -30,6 +41,7 @@ export default function RootLayout({
               <PageWrapper>{children}</PageWrapper>
             </MarginWidthWrapper>
           </main>
+          <Toaster />
         </div>
       </body>
     </html>

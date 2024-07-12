@@ -4,6 +4,8 @@ import io, { Socket } from "socket.io-client";
 import Image from "next/image";
 import axios from "axios";
 import { useToast } from "@/components/ui/use-toast";
+import styles from "../styles/QRCodeDisplay.module.css"; // Import CSS module for styling
+
 const QRCodeDisplay: React.FC = () => {
   const [qrCode, setQRCode] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -152,7 +154,36 @@ const QRCodeDisplay: React.FC = () => {
               </div>
             </div>
           ) : (
-            <p className="text-gray-500 text-center">Menunggu QR code...</p>
+            <div className="flex flex-col items-center">
+              <p className="text-gray-500 text-center mb-4">
+                Menunggu QR code...
+              </p>
+              <div className="mb-4">
+                {/* <div className={styles.ldsgrid}>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div> */}
+
+                <div className="qr-loader grid grid-cols-3 gap-1">
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                  <div className="w-16 h-16 bg-black"></div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
         <div className="w-full md:w-1/2 flex flex-col items-center mt-8 md:mt-0 md:ml-8">

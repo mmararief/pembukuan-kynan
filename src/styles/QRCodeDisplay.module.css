@@ -1,0 +1,72 @@
+/* QRCodeDisplay.module.css */
+.ldsgrid,
+.ldsgrid div {
+  box-sizing: border-box;
+}
+.ldsgrid {
+  display: inline-block;
+  position: relative;
+  width: 120px; /* Increased size */
+  height: 120px; /* Increased size */
+}
+.ldsgrid div {
+  position: absolute;
+  width: 24px; /* Increased size */
+  height: 24px; /* Increased size */
+  border-radius: 50%;
+  background: currentColor;
+  animation: ldsgrid 1.2s linear infinite;
+}
+.ldsgrid div:nth-child(1) {
+  top: 12px; /* Adjusted position */
+  left: 12px; /* Adjusted position */
+  animation-delay: 0s;
+}
+.ldsgrid div:nth-child(2) {
+  top: 12px; /* Adjusted position */
+  left: 48px; /* Adjusted position */
+  animation-delay: -0.4s;
+}
+.ldsgrid div:nth-child(3) {
+  top: 12px; /* Adjusted position */
+  left: 84px; /* Adjusted position */
+  animation-delay: -0.8s;
+}
+.ldsgrid div:nth-child(4) {
+  top: 48px; /* Adjusted position */
+  left: 12px; /* Adjusted position */
+  animation-delay: -0.4s;
+}
+.ldsgrid div:nth-child(5) {
+  top: 48px; /* Adjusted position */
+  left: 48px; /* Adjusted position */
+  animation-delay: -0.8s;
+}
+.ldsgrid div:nth-child(6) {
+  top: 48px; /* Adjusted position */
+  left: 84px; /* Adjusted position */
+  animation-delay: -1.2s;
+}
+.ldsgrid div:nth-child(7) {
+  top: 84px; /* Adjusted position */
+  left: 12px; /* Adjusted position */
+  animation-delay: -0.8s;
+}
+.ldsgrid div:nth-child(8) {
+  top: 84px; /* Adjusted position */
+  left: 48px; /* Adjusted position */
+  animation-delay: -1.2s;
+}
+.ldsgrid div:nth-child(9) {
+  top: 84px; /* Adjusted position */
+  left: 84px; /* Adjusted position */
+  animation-delay: -1.6s;
+}
+@keyframes ldsgrid {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

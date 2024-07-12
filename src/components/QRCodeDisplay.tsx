@@ -14,6 +14,18 @@ const QRCodeDisplay: React.FC = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/auth-status`);
+        setIsAuthenticated(response.data.authenticated);
+      } catch (err) {
+        console.error("Failed to check auth status", err);
+        setError("Failed to check auth status");
+      }
+    };
+
+    checkAuthStatus();
+
     if (!apiUrl) {
       setError("API URL is not defined");
       return;
@@ -77,7 +89,7 @@ const QRCodeDisplay: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center bg-gray-100 p-4 min-h-screen">
       <div className="bg-white shadow-xl rounded-lg p-6 w-full max-w-md">
         {error && <p className="text-red-500 mb-4">{error}</p>}
         {isAuthenticated ? (

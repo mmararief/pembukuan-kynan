@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { SIDENAV_ITEMS } from "@/styles/constants";
 import { SideNavItem } from "@/styles/types";
 import { Icon } from "@iconify/react";
+import logokynan from "../../public/logo/logokynan.png";
 
 const SideNav = () => {
   return (
@@ -17,10 +18,10 @@ const SideNav = () => {
           className="flex flex-row space-x-3 items-center justify-center md:justify-start md:px-6 border-b border-zinc-200 h-12 w-full"
         >
           <Image
-            className="  rounded-lg"
+            className="rounded-lg"
             width="30"
             height="30"
-            src="/logokynan.png"
+            src={logokynan}
             alt={"logo"}
           />
           <span className="font-bold text-xl hidden md:flex">Dapur Kynan</span>

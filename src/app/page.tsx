@@ -30,12 +30,14 @@ export default function Home() {
         <SalesCard transactions={transactions} />
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md flex gap-6">
-        <div className="flex-1">
-          <ChartHpp transactions={transactions} />
-        </div>
-        <div className="flex-1">
-          <ChartPopuler transactions={transactions} />
+      <div className="bg-white p-6 rounded-lg shadow-lg space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex-1">
+            <ChartHpp transactions={transactions} />
+          </div>
+          <div className="flex-1">
+            <ChartPopuler transactions={transactions} />
+          </div>
         </div>
       </div>
 

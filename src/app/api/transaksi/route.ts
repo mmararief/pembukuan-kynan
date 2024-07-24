@@ -11,7 +11,7 @@ export async function GET() {
 
     const orders = await prisma.transaksi.findMany({
         orderBy: {
-            id_transaksi: 'desc',
+            tanggal: 'desc',
         },
         include: {
             detailtransaksi: {

@@ -215,7 +215,11 @@ export function TabelTransaksi() {
     {
       accessorKey: "tanggal",
       header: "Date",
-      cell: ({ row }) => new Date(row.getValue("tanggal")).toLocaleDateString(),
+      cell: ({ row }) => {
+        // Use UTC time zone for parsing and formatting
+        const date = new Date(row.getValue("tanggal"));
+        return date.toLocaleDateString("id-ID", { timeZone: "UTC" });
+      },
     },
     {
       accessorKey: "via",

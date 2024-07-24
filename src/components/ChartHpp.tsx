@@ -108,24 +108,29 @@ export function ChartHpp({ transactions = [] }: ChartHppProps) {
   }, [transactions]);
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-[200px] max-w-xl">
-      <BarChart width={500} height={300} data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" tickFormatter={(value) => value.slice(0, 3)} />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar
-          dataKey="penjualan"
-          fill={chartConfig.penjualan.color}
-          radius={4}
-        />
-        <Bar
-          dataKey="pengeluaran"
-          fill={chartConfig.pengeluaran.color}
-          radius={4}
-        />
-      </BarChart>
-    </ChartContainer>
+    <div className="pt-5">
+      <h2 className="text-2xl text-center font-semibold mb-4">
+        Grafik Penjualan
+      </h2>
+      <ChartContainer config={chartConfig} className="min-h-[200px] max-w-xl">
+        <BarChart width={500} height={300} data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" tickFormatter={(value) => value.slice(0, 3)} />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar
+            dataKey="penjualan"
+            fill={chartConfig.penjualan.color}
+            radius={4}
+          />
+          <Bar
+            dataKey="pengeluaran"
+            fill={chartConfig.pengeluaran.color}
+            radius={4}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
   );
 }

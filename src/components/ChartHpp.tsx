@@ -57,14 +57,9 @@ interface MonthlyData {
   pengeluaran: number;
 }
 
-// Fetch transaction data from API
-const fetchTransactionData = async (): Promise<Transaksi[]> => {
-  const response = await fetch("/api/transaksi"); // Adjust the API endpoint as needed
-  if (!response.ok) {
-    throw new Error("Failed to fetch transaction data");
-  }
-  return response.json();
-};
+interface ChartHppProps {
+  transactions: Transaksi[];
+}
 
 // Process the transaction data to get monthly penjualan and pengeluaran
 const processData = (data: Transaksi[]): MonthlyData[] => {
@@ -103,15 +98,14 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ChartHpp() {
+export function ChartHpp({ transactions = [] }: ChartHppProps) {
   const [chartData, setChartData] = useState<MonthlyData[]>([]);
 
   useEffect(() => {
-    fetchTransactionData()
-      .then(processData)
-      .then(setChartData)
-      .catch(console.error);
-  }, []);
+    if (transactions.length > 0) {
+      setChartData(processData(transactions));
+    }
+  }, [transactions]);
 
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] max-w-xl">

@@ -1,5 +1,4 @@
 "use client";
-// components/SalesCard.tsx
 import { useEffect, useState } from "react";
 import { DollarSign, ShoppingCart } from "lucide-react";
 
@@ -34,28 +33,19 @@ interface Transaksi {
   detailtransaksi: DetailTransaksi[];
 }
 
-const SalesCard: React.FC = () => {
-  const [data, setData] = useState<Transaksi[]>([]);
+interface SalesCardProps {
+  transactions: Transaksi[];
+}
+
+const SalesCard: React.FC<SalesCardProps> = ({ transactions = [] }) => {
   const [todaySales, setTodaySales] = useState<number>(0);
   const [monthSales, setMonthSales] = useState<number>(0);
   const [todayItems, setTodayItems] = useState<number>(0);
   const [monthItems, setMonthItems] = useState<number>(0);
 
   useEffect(() => {
-    fetch("/api/transaksi")
-      .then((response) => response.json())
-      .then((data: Transaksi[]) => {
-        const normalizedData = data.map((transaction) => ({
-          ...transaction,
-          detailtransaksi: transaction.detailtransaksi,
-        }));
-        setData(normalizedData);
-        calculateSales(normalizedData);
-      })
-      .catch((error) => {
-        console.error("Error fetching transaction data:", error);
-      });
-  }, []);
+    calculateSales(transactions);
+  }, [transactions]);
 
   const calculateSales = (transactions: Transaksi[]) => {
     const today = new Date().toISOString().slice(0, 10);

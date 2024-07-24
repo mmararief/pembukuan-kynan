@@ -57,13 +57,9 @@ interface ProductData {
   fill: string;
 }
 
-const fetchTransactionData = async (): Promise<Transaction[]> => {
-  const response = await fetch("/api/transaksi");
-  if (!response.ok) {
-    throw new Error("Failed to fetch transaction data");
-  }
-  return response.json();
-};
+interface ChartPopulerProps {
+  transactions: Transaction[];
+}
 
 const getRandomColor = (): string => {
   const letters = "0123456789ABCDEF";
@@ -138,7 +134,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartPopuler() {
+export function ChartPopuler({ transactions = [] }: ChartPopulerProps) {
   const [chartData, setChartData] = React.useState<ProductData[]>([]);
   const [salesChange, setSalesChange] = React.useState<{
     currentMonthSales: number;
@@ -147,16 +143,14 @@ export function ChartPopuler() {
   }>({ currentMonthSales: 0, lastMonthSales: 0, percentageChange: 0 });
 
   React.useEffect(() => {
-    fetchTransactionData()
-      .then((data) => {
-        const filteredData = data.filter(
-          (transaction) => transaction.status === "Selesai"
-        );
-        setChartData(processData(filteredData));
-        setSalesChange(calculateSalesChange(filteredData));
-      })
-      .catch(console.error);
-  }, []);
+    if (transactions.length > 0) {
+      const filteredData = transactions.filter(
+        (transaction) => transaction.status === "Selesai"
+      );
+      setChartData(processData(filteredData));
+      setSalesChange(calculateSalesChange(filteredData));
+    }
+  }, [transactions]);
 
   const totalProducts = React.useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.count, 0);

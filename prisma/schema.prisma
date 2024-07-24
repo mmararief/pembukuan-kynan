@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model detailtransaksi {
+  id_detail    Int       @id @default(autoincrement())
+  id_transaksi Int
+  id_produk    Int
+  jumlah       Int
+  harga        Decimal   @db.Decimal(10, 2)
+  subtotal     Decimal   @db.Decimal(10, 2)
+  produk       produk    @relation(fields: [id_produk], references: [id_produk], map: "DetailTransaksi_id_produk_fkey")
+  transaksi    transaksi @relation(fields: [id_transaksi], references: [id_transaksi], map: "DetailTransaksi_id_transaksi_fkey")
+
+  @@index([id_produk], map: "DetailTransaksi_id_produk_fkey")
+  @@index([id_transaksi], map: "DetailTransaksi_id_transaksi_fkey")
+}
+
+model identitas {
+  id       Int    @id @default(autoincrement())
+  logo     String
+  title    String
+  an       String
+  bank     String
+  rekening String
+  hp       String
+  email    String
+  pajak    String
+  jasa     String
+  alamat   String
+  map      String
+  ig       String
+  dev      String
+  wa       String
+}
+
+model kategori {
+  id_kategori   Int      @id @default(autoincrement())
+  nama_kategori String
+  tgl_input     String
+  produk        produk[]
+}
+
+model landingpage {
+  id       Int    @id @default(autoincrement())
+  title    String
+  subtitle String
+  prom     String
+}
+
+model login {
+  id_login      Int    @id @default(autoincrement())
+  nama_pengguna String
+  username      String
+  password      String
+  level         String
+}
+
+model produk {
+  id_produk       Int               @id @default(autoincrement())
+  id_kategori     Int
+  nama_produk     String
+  status          String
+  gambar          String
+  harga_jual      Decimal           @db.Decimal(10, 2)
+  hpp             Decimal?          @db.Decimal(10, 2)
+  detailtransaksi detailtransaksi[]
+  kategori        kategori          @relation(fields: [id_kategori], references: [id_kategori], onDelete: Cascade, map: "Produk_id_kategori_fkey")
+
+  @@index([id_kategori], map: "Produk_id_kategori_fkey")
+}
+
+model rekening {
+  id           Int    @id @default(autoincrement())
+  nama_bank    String
+  no_rekening  String
+  nama_pemilik String
+}
+
+model transaksi {
+  id_transaksi      Int               @id @default(autoincrement())
+  tanggal           DateTime
+  via               String
+  nama              String
+  whatsapp          String
+  alamat            String?
+  metode_pembayaran String
+  total             Decimal           @db.Decimal(10, 2)
+  status            String
+  detailtransaksi   detailtransaksi[]
+}

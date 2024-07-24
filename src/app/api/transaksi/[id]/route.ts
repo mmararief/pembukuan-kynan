@@ -23,3 +23,22 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 });
   }
 }
+
+
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
+  const id = parseInt(params.id);
+  const { status } = await req.json();
+
+  try {
+    // Update the transaction status
+    const updatedTransaction = await prisma.transaksi.update({
+      where: { id_transaksi: id },
+      data: { status },
+    });
+
+    return NextResponse.json(updatedTransaction);
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    return NextResponse.json({ error: 'Failed to update transaction status' }, { status: 500 });
+  }
+}

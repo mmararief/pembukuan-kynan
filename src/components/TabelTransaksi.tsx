@@ -40,6 +40,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface DetailTransaksi {
+  id_detail: number;
+  id_transaksi: number;
+  id_produk: number;
+  jumlah: number;
+  harga: string;
+  subtotal: string;
+  produk: {
+    id_produk: number;
+    id_kategori: number;
+    nama_produk: string;
+    harga_jual: string;
+    hpp: string | null;
+    status: string;
+    gambar: string;
+  };
+}
+
+interface Transaksi {
+  id_transaksi: number;
+  tanggal: string;
+  via: string;
+  nama: string;
+  whatsapp: string;
+  alamat: string;
+  metode_pembayaran: string;
+  total: string;
+  status: string;
+  detailtransaksi: DetailTransaksi[];
+}
+
 // Define the transaction type
 export type Transaction = {
   id_transaksi: number;
@@ -51,7 +82,15 @@ export type Transaction = {
   metode_pembayaran: string;
   total: string;
   status: string;
+  details: {
+    nama_produk: string;
+    jumlah: number;
+    harga_satuan: number;
+    subtotal: number;
+  }[];
 };
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export function TabelTransaksi() {
   const router = useRouter();
@@ -64,11 +103,41 @@ export function TabelTransaksi() {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // Helper function to transform detailtransaksi to details
+  const transformDetailTransaksi = (details: DetailTransaksi[]) => {
+    return details.map((detail) => ({
+      nama_produk: detail.produk.nama_produk,
+      jumlah: detail.jumlah,
+      harga_satuan: parseFloat(detail.harga),
+      subtotal: parseFloat(detail.subtotal),
+    }));
+  };
+
+  // Function to transform Transaksi to Transaction
+  const transformTransaksiToTransaction = (
+    transaksi: Transaksi
+  ): Transaction => {
+    return {
+      id_transaksi: transaksi.id_transaksi,
+      tanggal: transaksi.tanggal,
+      via: transaksi.via,
+      nama: transaksi.nama,
+      whatsapp: transaksi.whatsapp,
+      alamat: transaksi.alamat,
+      metode_pembayaran: transaksi.metode_pembayaran,
+      total: transaksi.total,
+      status: transaksi.status,
+      details: transformDetailTransaksi(transaksi.detailtransaksi),
+    };
+  };
+
   // Fetch data from API
   React.useEffect(() => {
     fetch("/api/transaksi")
       .then((response) => response.json())
-      .then((data) => setTransactions(data))
+      .then((data: Transaksi[]) =>
+        setTransactions(data.map(transformTransaksiToTransaction))
+      )
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
@@ -89,6 +158,51 @@ export function TabelTransaksi() {
       }
     } catch (error) {
       console.error("Error deleting transaction:", error);
+    }
+  };
+
+  const handleCompleteOrder = async (transaction: Transaction) => {
+    try {
+      // Update the status to 'completed'
+      const updateStatusResponse = await fetch(
+        `/api/transaksi/${transaction.id_transaksi}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "Selesai" }),
+        }
+      );
+
+      if (updateStatusResponse.ok) {
+        // Send the request to generate and send the invoice
+        const sendInvoiceResponse = await fetch(`${apiUrl}/send-invoice`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(transaction),
+        });
+
+        if (sendInvoiceResponse.ok) {
+          // Update state to reflect the completed status
+          setTransactions((prev) =>
+            prev.map((tx) =>
+              tx.id_transaksi === transaction.id_transaksi
+                ? { ...tx, status: "Selesai" }
+                : tx
+            )
+          );
+          alert("Order completed and invoice sent successfully!");
+        } else {
+          alert("Failed to send invoice.");
+        }
+      } else {
+        alert("Failed to update order status.");
+      }
+    } catch (error) {
+      console.error("Error completing order:", error);
     }
   };
 
@@ -146,7 +260,7 @@ export function TabelTransaksi() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const transactionId = row.getValue("id_transaksi") as number;
+        const transaction = row.original;
 
         return (
           <DropdownMenu>
@@ -160,7 +274,9 @@ export function TabelTransaksi() {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() =>
-                  navigator.clipboard.writeText(transactionId.toString())
+                  navigator.clipboard.writeText(
+                    transaction.id_transaksi.toString()
+                  )
                 }
               >
                 Copy payment ID
@@ -168,8 +284,15 @@ export function TabelTransaksi() {
               <DropdownMenuSeparator />
               <DropdownMenuItem>View customer</DropdownMenuItem>
               <DropdownMenuItem>View payment details</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDelete(transactionId)}>
+              <DropdownMenuItem
+                onClick={() => handleDelete(transaction.id_transaksi)}
+              >
                 Delete transaction
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleCompleteOrder(transaction)}
+              >
+                Complete order and send invoice
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

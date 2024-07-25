@@ -14,14 +14,13 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: <Icon icon="lucide:phone" width="24" height="24" />,
   },
   {
-    title: "Projects",
-    path: "/projects",
-    icon: <Icon icon="lucide:folder" width="24" height="24" />,
+    title: "Laporan",
+    path: "/laporan",
+    icon: <Icon icon="lucide:book-text" width="24" height="24" />,
     submenu: true,
     subMenuItems: [
-      { title: "All", path: "/projects" },
-      { title: "Web Design", path: "/projects/web-design" },
-      { title: "Graphic Design", path: "/projects/graphic-design" },
+      { title: "Laba Rugi", path: "/laporan/laba-rugi" },
+      { title: "Pembukuan", path: "/laporan/pembukuan" },
     ],
   },
   {

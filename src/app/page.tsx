@@ -10,7 +10,7 @@ export default function Home() {
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    fetch("/api/transaksi", { next: { revalidate: 60 } })
+    fetch("/api/transaksi")
       .then((response) => response.json())
       .then((data) => setTransactions(data))
       .catch((error) => {

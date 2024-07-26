@@ -32,46 +32,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "./ui/use-toast";
 
-interface DetailTransaksi {
-  id_detail: number;
-  id_transaksi: number;
-  id_produk: number;
-  jumlah: number;
-  harga: string;
-  subtotal: string;
-  produk: {
-    id_produk: number;
-    id_kategori: number;
-    nama_produk: string;
-    harga_jual: string;
-    hpp: string | null;
-    status: string;
-    gambar: string;
-  };
-}
-
-interface Transaksi {
-  id_transaksi: number;
-  tanggal: string;
-  via: string;
-  nama: string;
-  whatsapp: string;
-  alamat: string;
-  metode_pembayaran: string;
-  total: string;
-  status: string;
-  detailtransaksi: DetailTransaksi[];
-}
+import { Transaksi } from "@/styles/types"; // Import the shared type
 
 interface TabelTransaksiProps {
   transactions: Transaksi[];
@@ -95,6 +58,7 @@ export function TabelTransaksi({
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState({});
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const [loading, setLoading] = React.useState(false);
 
   const handleViewDetails = (transaction: Transaksi) => {
     setSelectedTransaction(transaction);
@@ -128,6 +92,7 @@ export function TabelTransaksi({
   };
 
   const handleDelete = async (transactionId: number) => {
+    setLoading(true);
     try {
       const response = await fetch(`/api/transaksi/${transactionId}`, {
         method: "DELETE",
@@ -145,10 +110,13 @@ export function TabelTransaksi({
       }
     } catch (error) {
       console.error("Error deleting transaction:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCompleteOrder = async (transaction: Transaksi) => {
+    setLoading(true);
     try {
       // Update the status to 'completed'
       const updateStatusResponse = await fetch(
@@ -195,6 +163,8 @@ export function TabelTransaksi({
       }
     } catch (error) {
       console.error("Error completing order:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -255,7 +225,11 @@ export function TabelTransaksi({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                disabled={loading}
+              >
                 <span className="sr-only">Open menu</span>
                 <DotsHorizontalIcon className="h-4 w-4" />
               </Button>
@@ -268,21 +242,27 @@ export function TabelTransaksi({
                     transaction.id_transaksi.toString()
                   )
                 }
+                disabled={loading}
               >
                 Copy payment ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={() => handleViewDetails(transaction)}>
+              <DropdownMenuItem
+                onClick={() => handleViewDetails(transaction)}
+                disabled={loading}
+              >
                 Lihat detail pesanan
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDelete(transaction.id_transaksi)}
+                disabled={loading}
               >
                 Hapus transaksi
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleCompleteOrder(transaction)}
+                disabled={loading}
               >
                 Selesaikan pesanan dan kirim faktur
               </DropdownMenuItem>
@@ -314,6 +294,11 @@ export function TabelTransaksi({
 
   return (
     <div className="w-full">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-75">
+          <div className="loader"></div> {/* Add your loader here */}
+        </div>
+      )}
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter names..."
@@ -322,14 +307,17 @@ export function TabelTransaksi({
             table.getColumn("nama")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
+          disabled={loading}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="ml-auto" disabled={loading}>
               Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
@@ -342,6 +330,7 @@ export function TabelTransaksi({
                     onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
                     }
+                    disabled={loading}
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -351,66 +340,62 @@ export function TabelTransaksi({
         </DropdownMenu>
       </div>
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+        <table className="w-full">
+          <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
+                    <th key={header.id} className="px-4 py-2 text-left">
+                      {header.isPlaceholder ? null : (
+                        <div
+                          {...{
+                            className: header.column.getCanSort()
+                              ? "cursor-pointer select-none"
+                              : "",
+                            onClick: header.column.getToggleSortingHandler(),
+                          }}
+                        >
+                          {flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                    </TableHead>
+                          {{
+                            asc: <CaretSortIcon className="ml-2" />,
+                            desc: <CaretSortIcon className="ml-2 rotate-180" />,
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </div>
+                      )}
+                    </th>
                   );
                 })}
-              </TableRow>
+              </tr>
             ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="px-4 py-2">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getRowModel().rows.length} of{" "}
+          {table.getCoreRowModel().rows.length} rows
         </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            disabled={!table.getCanPreviousPage() || loading}
           >
             Previous
           </Button>
@@ -418,18 +403,20 @@ export function TabelTransaksi({
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={!table.getCanNextPage() || loading}
           >
             Next
           </Button>
         </div>
       </div>
-      {/* Modal for Order Details */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        transaction={selectedTransaction}
-      />
+
+      {selectedTransaction && (
+        <Modal
+          transaction={selectedTransaction}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

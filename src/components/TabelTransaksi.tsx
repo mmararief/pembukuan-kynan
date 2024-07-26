@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { Modal } from "@/components/ModalDetailTransaksi"; // Adjust the import path as needed
 import {
   CaretSortIcon,
   ChevronDownIcon,
@@ -89,8 +90,21 @@ export function TabelTransaksi({
 
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
+  const [selectedTransaction, setSelectedTransaction] =
+    React.useState<Transaksi | null>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState({});
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const handleViewDetails = (transaction: Transaksi) => {
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTransaction(null);
+  };
 
   // Function to transform transaction object
   const transformTransaction = (transaction: Transaksi) => {
@@ -258,17 +272,19 @@ export function TabelTransaksi({
                 Copy payment ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View customer</DropdownMenuItem>
-              <DropdownMenuItem>View payment details</DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => handleViewDetails(transaction)}>
+                Lihat detail pesanan
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDelete(transaction.id_transaksi)}
               >
-                Delete transaction
+                Hapus transaksi
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleCompleteOrder(transaction)}
               >
-                Complete order and send invoice
+                Selesaikan pesanan dan kirim faktur
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -408,6 +424,12 @@ export function TabelTransaksi({
           </Button>
         </div>
       </div>
+      {/* Modal for Order Details */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        transaction={selectedTransaction}
+      />
     </div>
   );
 }

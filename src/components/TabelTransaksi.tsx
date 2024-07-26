@@ -186,10 +186,6 @@ export function TabelTransaksi({
 
   const columns: ColumnDef<Transaksi>[] = [
     {
-      accessorKey: "id_transaksi",
-      header: "Transaction ID",
-    },
-    {
       accessorKey: "tanggal",
       header: "Date",
       cell: ({ row }) => {

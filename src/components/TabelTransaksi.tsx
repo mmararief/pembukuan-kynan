@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useToast } from "./ui/use-toast";
 
 interface DetailTransaksi {
   id_detail: number;
@@ -71,75 +72,46 @@ interface Transaksi {
   detailtransaksi: DetailTransaksi[];
 }
 
-// Define the transaction type
-export type Transaction = {
-  id_transaksi: number;
-  tanggal: string;
-  via: string;
-  nama: string;
-  whatsapp: string;
-  alamat: string;
-  metode_pembayaran: string;
-  total: string;
-  status: string;
-  details: {
-    nama_produk: string;
-    jumlah: number;
-    harga_satuan: number;
-    subtotal: number;
-  }[];
-};
+interface TabelTransaksiProps {
+  transactions: Transaksi[];
+  setTransactions: React.Dispatch<React.SetStateAction<Transaksi[]>>;
+}
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-export function TabelTransaksi() {
-  const router = useRouter();
-  const [transactions, setTransactions] = React.useState<Transaction[]>([]);
+export function TabelTransaksi({
+  transactions,
+  setTransactions,
+}: TabelTransaksiProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const { toast } = useToast();
+
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // Helper function to transform detailtransaksi to details
-  const transformDetailTransaksi = (details: DetailTransaksi[]) => {
-    return details.map((detail) => ({
-      nama_produk: detail.produk.nama_produk,
-      jumlah: detail.jumlah,
-      harga_satuan: parseFloat(detail.harga),
-      subtotal: parseFloat(detail.subtotal),
-    }));
-  };
-
-  // Function to transform Transaksi to Transaction
-  const transformTransaksiToTransaction = (
-    transaksi: Transaksi
-  ): Transaction => {
+  // Function to transform transaction object
+  const transformTransaction = (transaction: Transaksi) => {
     return {
-      id_transaksi: transaksi.id_transaksi,
-      tanggal: transaksi.tanggal,
-      via: transaksi.via,
-      nama: transaksi.nama,
-      whatsapp: transaksi.whatsapp,
-      alamat: transaksi.alamat,
-      metode_pembayaran: transaksi.metode_pembayaran,
-      total: transaksi.total,
-      status: transaksi.status,
-      details: transformDetailTransaksi(transaksi.detailtransaksi),
+      id_transaksi: String(transaction.id_transaksi),
+      tanggal: transaction.tanggal,
+      via: transaction.via,
+      nama: transaction.nama,
+      whatsapp: transaction.whatsapp,
+      alamat: transaction.alamat,
+      metode_pembayaran: transaction.metode_pembayaran,
+      status: transaction.status,
+      total: Number(transaction.total),
+      details: transaction.detailtransaksi.map((item) => ({
+        nama_produk: item.produk.nama_produk,
+        jumlah: item.jumlah,
+        harga_satuan: Number(item.harga),
+        subtotal: Number(item.subtotal),
+      })),
     };
   };
-
-  // Fetch data from API
-  React.useEffect(() => {
-    fetch("/api/transaksi")
-      .then((response) => response.json())
-      .then((data: Transaksi[]) =>
-        setTransactions(data.map(transformTransaksiToTransaction))
-      )
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
 
   const handleDelete = async (transactionId: number) => {
     try {
@@ -148,11 +120,12 @@ export function TabelTransaksi() {
       });
 
       if (response.ok) {
-        // Update state to remove the deleted transaction
         setTransactions((prev) =>
           prev.filter((tx) => tx.id_transaksi !== transactionId)
         );
-        alert("Transaction deleted successfully!");
+        toast({
+          description: "Berhasil menghapus transaksi.",
+        });
       } else {
         alert("Failed to delete transaction.");
       }
@@ -161,7 +134,7 @@ export function TabelTransaksi() {
     }
   };
 
-  const handleCompleteOrder = async (transaction: Transaction) => {
+  const handleCompleteOrder = async (transaction: Transaksi) => {
     try {
       // Update the status to 'completed'
       const updateStatusResponse = await fetch(
@@ -176,13 +149,16 @@ export function TabelTransaksi() {
       );
 
       if (updateStatusResponse.ok) {
+        // Transform the transaction before sending it
+        const transformedTransaction = transformTransaction(transaction);
+
         // Send the request to generate and send the invoice
         const sendInvoiceResponse = await fetch(`${apiUrl}/send-invoice`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(transaction),
+          body: JSON.stringify(transformedTransaction),
         });
 
         if (sendInvoiceResponse.ok) {
@@ -194,7 +170,9 @@ export function TabelTransaksi() {
                 : tx
             )
           );
-          alert("Order completed and invoice sent successfully!");
+          toast({
+            description: "Pesanan selesai dan faktur berhasil dikirim!",
+          });
         } else {
           alert("Failed to send invoice.");
         }
@@ -206,8 +184,7 @@ export function TabelTransaksi() {
     }
   };
 
-  // Define the columns
-  const columns: ColumnDef<Transaction>[] = [
+  const columns: ColumnDef<Transaksi>[] = [
     {
       accessorKey: "id_transaksi",
       header: "Transaction ID",
@@ -216,7 +193,6 @@ export function TabelTransaksi() {
       accessorKey: "tanggal",
       header: "Date",
       cell: ({ row }) => {
-        // Use UTC time zone for parsing and formatting
         const date = new Date(row.getValue("tanggal"));
         return date.toLocaleDateString("id-ID", { timeZone: "UTC" });
       },

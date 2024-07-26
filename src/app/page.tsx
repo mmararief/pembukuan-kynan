@@ -5,9 +5,9 @@ import { ChartPopuler } from "@/components/ChartPopuler";
 import SalesCard from "@/components/SalesCard";
 import { TabelTransaksi } from "@/components/TabelTransaksi";
 import WaStatus from "@/components/WaStatus";
-
+import { Transaksi } from "@/styles/types"; // Import the shared type
 export default function Home() {
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaksi[]>([]);
 
   useEffect(() => {
     fetch("/api/transaksi")
@@ -22,7 +22,7 @@ export default function Home() {
     <div className="p-4 space-y-8">
       <h1 className="text-3xl font-bold mb-4">Home</h1>
 
-      <div className=" mb-6">
+      <div className="mb-6">
         <WaStatus />
       </div>
 
@@ -42,7 +42,10 @@ export default function Home() {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <TabelTransaksi />
+        <TabelTransaksi
+          transactions={transactions}
+          setTransactions={setTransactions}
+        />
       </div>
     </div>
   );

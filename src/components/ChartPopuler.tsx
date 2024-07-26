@@ -17,39 +17,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
-interface Transaction {
-  id_transaksi: number;
-  tanggal: string;
-  via: string;
-  nama: string;
-  whatsapp: string;
-  alamat: string;
-  metode_pembayaran: string;
-  total: string;
-  status: string;
-  detailtransaksi: DetailTransaksi[];
-}
-
-interface DetailTransaksi {
-  id_detail: number;
-  id_transaksi: number;
-  id_produk: number;
-  jumlah: number;
-  harga: string;
-  subtotal: string;
-  produk: Produk;
-}
-
-interface Produk {
-  id_produk: number;
-  id_kategori: number;
-  nama_produk: string;
-  status: string;
-  gambar: string;
-  harga_jual: string;
-  hpp: string;
-}
+import { Transaksi } from "@/styles/types"; // Import the shared type
 
 interface ProductData {
   name: string;
@@ -58,7 +26,7 @@ interface ProductData {
 }
 
 interface ChartPopulerProps {
-  transactions: Transaction[];
+  transactions: Transaksi[];
 }
 
 const getRandomColor = (): string => {
@@ -70,7 +38,7 @@ const getRandomColor = (): string => {
   return color;
 };
 
-const processData = (data: Transaction[]): ProductData[] => {
+const processData = (data: Transaksi[]): ProductData[] => {
   const currentMonth = new Date().getMonth();
   const productData: Record<string, ProductData> = {};
 
@@ -96,7 +64,7 @@ const processData = (data: Transaction[]): ProductData[] => {
   return Object.values(productData);
 };
 
-const calculateSalesChange = (data: Transaction[]) => {
+const calculateSalesChange = (data: Transaksi[]) => {
   const currentMonth = new Date().getMonth();
   const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
 

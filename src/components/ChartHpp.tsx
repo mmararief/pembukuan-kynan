@@ -16,40 +16,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
+import { Transaksi } from "@/styles/types";
 // Define the types for the transaction data
-interface Product {
-  id_produk: number;
-  id_kategori: number;
-  nama_produk: string;
-  status: string;
-  gambar: string;
-  harga_jual: string;
-  hpp: string;
-}
-
-interface DetailTransaksi {
-  id_detail: number;
-  id_transaksi: number;
-  id_produk: number;
-  jumlah: number;
-  harga: string;
-  subtotal: string;
-  produk: Product;
-}
-
-interface Transaksi {
-  id_transaksi: number;
-  tanggal: string;
-  via: string;
-  nama: string;
-  whatsapp: string;
-  alamat: string;
-  metode_pembayaran: string;
-  total: string;
-  status: string;
-  detailtransaksi: DetailTransaksi[];
-}
 
 interface MonthlyData {
   month: string;
@@ -76,7 +44,9 @@ const processData = (data: Transaksi[]): MonthlyData[] => {
 
       transaction.detailtransaksi.forEach((detail) => {
         const subtotal = parseFloat(detail.subtotal);
-        const hpp = parseFloat(detail.produk.hpp) * detail.jumlah;
+        const hpp = detail.produk.hpp
+          ? parseFloat(detail.produk.hpp) * detail.jumlah
+          : 0;
         monthlyData[month].penjualan += subtotal;
         monthlyData[month].pengeluaran += hpp;
       });

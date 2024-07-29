@@ -44,3 +44,10 @@ export interface Transaksi {
   status: string;
   detailtransaksi: DetailTransaksi[];
 }
+
+interface PaymentMethod {
+  id: number;
+  nama_bank: string;
+  no_rekening: string;
+  nama_pemilik: string;
+}

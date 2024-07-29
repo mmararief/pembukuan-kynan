@@ -10,6 +10,7 @@ import io, { Socket } from "socket.io-client";
 import { Transaksi } from "@/styles/types"; // Import the shared type
 
 import { toast } from "@/components/ui/use-toast";
+import { AddTransactionModal } from "@/components/AddTransactionModal";
 const Home: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaksi[]>([]);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -50,6 +51,10 @@ const Home: React.FC = () => {
     };
   }, [apiUrl]);
 
+  const handleSave = (newTransaction: Transaksi) => {
+    setTransactions([newTransaction, ...transactions]);
+  };
+
   return (
     <div className="p-4 space-y-8">
       <h1 className="text-3xl font-bold mb-4">Home</h1>
@@ -74,6 +79,7 @@ const Home: React.FC = () => {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <AddTransactionModal onSave={handleSave} />
         <TabelTransaksi
           transactions={transactions}
           setTransactions={setTransactions}

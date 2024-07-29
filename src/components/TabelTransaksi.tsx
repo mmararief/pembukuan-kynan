@@ -115,7 +115,7 @@ export function TabelTransaksi({
     }
   };
 
-  const handleCompleteOrder = async (transaction: Transaksi) => {
+  const handleProcessOrder = async (transaction: Transaksi) => {
     setLoading(true);
     try {
       // Update the status to 'completed'
@@ -126,9 +126,18 @@ export function TabelTransaksi({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ status: "Selesai" }),
+          body: JSON.stringify({ status: "Proses" }),
         }
       );
+
+      const sendNotification = await fetch(`${apiUrl}/order-finish`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(transaction),
+      });
+      console.log(sendNotification);
 
       if (updateStatusResponse.ok) {
         // Transform the transaction before sending it
@@ -148,7 +157,7 @@ export function TabelTransaksi({
           setTransactions((prev) =>
             prev.map((tx) =>
               tx.id_transaksi === transaction.id_transaksi
-                ? { ...tx, status: "Selesai" }
+                ? { ...tx, status: "Proses" }
                 : tx
             )
           );
@@ -158,6 +167,43 @@ export function TabelTransaksi({
         } else {
           alert("Failed to send invoice.");
         }
+      } else {
+        alert("Failed to update order status.");
+      }
+    } catch (error) {
+      console.error("Error completing order:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteOrder = async (transaction: Transaksi) => {
+    setLoading(true);
+    try {
+      // Update the status to 'completed'
+      const updateStatusResponse = await fetch(
+        `/api/transaksi/${transaction.id_transaksi}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "Selesai" }),
+        }
+      );
+
+      if (updateStatusResponse.ok) {
+        // Transform the transaction before sending it
+        setTransactions((prev) =>
+          prev.map((tx) =>
+            tx.id_transaksi === transaction.id_transaksi
+              ? { ...tx, status: "Selesai" }
+              : tx
+          )
+        );
+        toast({
+          description: "Pesanan selesai",
+        });
       } else {
         alert("Failed to update order status.");
       }
@@ -261,10 +307,16 @@ export function TabelTransaksi({
                 Hapus transaksi
               </DropdownMenuItem>
               <DropdownMenuItem
+                onClick={() => handleProcessOrder(transaction)}
+                disabled={loading}
+              >
+                Proses pesanan dan kirim faktur
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => handleCompleteOrder(transaction)}
                 disabled={loading}
               >
-                Selesaikan pesanan dan kirim faktur
+                Selesaikan pesanan
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

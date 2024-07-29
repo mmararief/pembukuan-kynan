@@ -92,3 +92,9 @@
   .qr-loader div:nth-child(8) { animation-delay: 0.7s; }
   .qr-loader div:nth-child(9) { animation-delay: 0.8s; }
   
+
+  .selected-products-list {
+    max-height: 150px; /* Set your desired max height */
+    overflow-y: auto;
+  }
+  

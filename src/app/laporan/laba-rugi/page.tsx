@@ -1,38 +1,64 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Transaksi } from "@/styles/types";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { exportToPDF } from "@/lib/pdfUtils";
+import { exportLabaRugiToExcel } from "@/lib/excelUtils";
+import { formatRupiah } from "@/lib/formatRupiah";
+import { DatePicker } from "@/components/DatePicker";
 
 const LabaRugi: React.FC = () => {
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [data, setData] = useState<Transaksi[]>([]);
 
-  const fetchData = async () => {
+  const fetchData = async (startDate: Date, endDate: Date) => {
     if (!startDate || !endDate) {
       alert("Please select both start and end dates.");
       return;
     }
 
+    const formattedStartDate = startDate.toISOString().split("T")[0];
+    const formattedEndDate = endDate.toISOString().split("T")[0];
+
     const response = await fetch(
-      `/api/labarugi?startDate=${startDate}&endDate=${endDate}`
+      `/api/labarugi?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
     );
     const result: Transaksi[] = await response.json();
     setData(result);
   };
 
+  useEffect(() => {
+    if (startDate && endDate) {
+      fetchData(startDate, endDate);
+    }
+  }, [startDate, endDate]);
+
   const calculateProfitLoss = (transactions: Transaksi[]) => {
     let totalRevenue = 0;
     let totalCost = 0;
+    const productSales: { [key: string]: number } = {};
+    const productCosts: { [key: string]: number } = {};
 
     transactions.forEach((transaction) => {
       transaction.detailtransaksi.forEach((detail) => {
         totalRevenue += parseFloat(detail.subtotal);
-        if (detail.produk.hpp) {
-          totalCost += parseFloat(detail.produk.hpp) * detail.jumlah;
+        const hpp = detail.produk.hpp ? parseFloat(detail.produk.hpp) : 0;
+        totalCost += hpp * detail.jumlah;
+
+        const productName = detail.produk.nama_produk;
+        const productSale = parseFloat(detail.subtotal);
+        const productCost = hpp * detail.jumlah;
+
+        if (!productSales[productName]) {
+          productSales[productName] = 0;
         }
+        if (!productCosts[productName]) {
+          productCosts[productName] = 0;
+        }
+
+        productSales[productName] += productSale;
+        productCosts[productName] += productCost;
       });
     });
 
@@ -40,163 +66,115 @@ const LabaRugi: React.FC = () => {
       revenue: totalRevenue,
       cost: totalCost,
       profitLoss: totalRevenue - totalCost,
+      productSales,
+      productCosts,
     };
   };
 
   const result = calculateProfitLoss(data);
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Laporan Laba & Rugi", 14, 20);
-    doc.text("Dapur Kynan", 14, 30);
-    doc.text(`Dari ${startDate} Sampai ${endDate}`, 14, 40);
-
-    // Add summary table
-    autoTable(doc, {
-      startY: 50,
-      head: [["Description", "Amount"]],
-      body: [
-        ["Pendapatan dari Penjualan", ""],
-        ["Penjualan", result.revenue],
-        ["Harga Pokok Penjualan", `(${result.cost})`],
-        ["Laba Kotor", result.profitLoss],
-      ],
-    });
-
-    // // Add detail tables
-    // data.forEach((transaction, index) => {
-    //   if (index > 0) doc.addPage();
-    //   doc.text(`Transaksi ID: ${transaction.id_transaksi}`, 14, 20);
-    //   doc.text(
-    //     `Tanggal: ${new Date(transaction.tanggal).toLocaleDateString()}`,
-    //     14,
-    //     30
-    //   );
-
-    //   const detailRows = transaction.detailtransaksi.map((detail) => [
-    //     detail.produk.nama_produk,
-    //     detail.jumlah,
-    //     detail.harga,
-    //     detail.subtotal,
-    //   ]);
-
-    //   autoTable(doc, {
-    //     startY: 40,
-    //     head: [["Produk", "Jumlah", "Harga", "Subtotal"]],
-    //     body: detailRows,
-    //   });
-    // });
-
-    doc.save(`Laporan_Laba_Rugi_${startDate}_to_${endDate}.pdf`);
-  };
-
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Laba Rugi</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Laba Rugi</h1>
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Start Date:
-        </label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="border p-2 w-full"
-        />
+        <div className="flex space-x-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Start Date
+            </label>
+            <DatePicker date={startDate} setDate={setStartDate} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              End Date
+            </label>
+            <DatePicker date={endDate} setDate={setEndDate} />
+          </div>
+        </div>
       </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">End Date:</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="border p-2 w-full"
-        />
+      <div className="flex mb-4 space-x-4">
+        <Button
+          onClick={() => exportToPDF("labarugi-content", "laba-rugi.pdf")}
+          className=" px-4 py-2"
+        >
+          Export to PDF
+        </Button>
+        <Button
+          onClick={() =>
+            exportLabaRugiToExcel(
+              data,
+              startDate?.toISOString().split("T")[0] || "",
+              endDate?.toISOString().split("T")[0] || ""
+            )
+          }
+          className=" px-4 py-2"
+        >
+          Export to Excel
+        </Button>
       </div>
-      <Button
-        onClick={fetchData}
-        className="bg-blue-500 text-white p-2 w-full mb-6"
-      >
-        Submit
-      </Button>
-      <Button
-        onClick={downloadPDF}
-        className="bg-green-500 text-white p-2 w-full mb-6"
-      >
-        Download PDF
-      </Button>
 
       <div id="labarugi-content" className="bg-white p-6 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Laporan Laba & Rugi</h2>
         <p className="mb-2">Dapur Kynan</p>
         <p className="mb-6">
-          Dari {startDate} Sampai {endDate}
+          Dari {startDate?.toLocaleDateString()} Sampai{" "}
+          {endDate?.toLocaleDateString()}
         </p>
-
         <table className="min-w-full bg-white border mb-6">
           <thead>
             <tr>
-              <th className="py-2 px-4 border">Description</th>
-              <th className="py-2 px-4 border">Amount</th>
+              <th className="py-2 px-4 border">Deskripsi</th>
+              <th className="py-2 px-4 border">Jumlah</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td className="py-2 px-4 border font-bold" colSpan={2}>
-                Pendapatan dari Penjualan
+                Pendapatan
+              </td>
+            </tr>
+            {Object.entries(result.productSales).map(([product, amount]) => (
+              <tr key={product}>
+                <td className="py-2 px-4 border">Penjualan {product}</td>
+                <td className="py-2 px-4 border">{formatRupiah(amount)}</td>
+              </tr>
+            ))}
+            <tr>
+              <td className="py-2 px-4 text-center border font-bold">
+                Total Pendapatan
+              </td>
+              <td className="py-2 px-4 border">
+                {formatRupiah(result.revenue)}
               </td>
             </tr>
             <tr>
-              <td className="py-2 px-4 border">Penjualan</td>
-              <td className="py-2 px-4 border">{result.revenue}</td>
+              <td className="py-2 px-4 border font-bold" colSpan={2}>
+                Beban
+              </td>
+            </tr>
+            {Object.entries(result.productCosts).map(([product, amount]) => (
+              <tr key={product}>
+                <td className="py-2 px-4 border">
+                  Harga Pokok Penjualan {product}
+                </td>
+                <td className="py-2 px-4 border">{formatRupiah(amount)}</td>
+              </tr>
+            ))}
+            <tr>
+              <td className="py-2 px-4 border text-center font-bold">
+                Total Beban
+              </td>
+              <td className="py-2 px-4 border">{formatRupiah(result.cost)}</td>
             </tr>
             <tr>
-              <td className="py-2 px-4 border">Harga Pokok Penjualan</td>
-              <td className="py-2 px-4 border">({result.cost})</td>
-            </tr>
-            <tr>
-              <td className="py-2 px-4 border font-bold">Laba Kotor</td>
-              <td className="py-2 px-4 border">{result.profitLoss}</td>
+              <td className="py-2 px-4 border font-bold">Laba/Rugi Bersih</td>
+              <td className="py-2 px-4 border">
+                {formatRupiah(result.profitLoss)}
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      {/* <div className="bg-white p-6 rounded-lg shadow-lg my-4">
-        <h3 className="text-xl font-bold mb-4">Detail Penjualan</h3>
-        {data.map((transaction) => (
-          <div key={transaction.id_transaksi} className="mb-4">
-            <h4 className="font-bold mb-2">
-              Transaksi ID: {transaction.id_transaksi}
-            </h4>
-            <p className="mb-2">
-              Tanggal: {new Date(transaction.tanggal).toLocaleDateString()}
-            </p>
-            <table className="min-w-full bg-white border mb-6">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border">Produk</th>
-                  <th className="py-2 px-4 border">Jumlah</th>
-                  <th className="py-2 px-4 border">Harga</th>
-                  <th className="py-2 px-4 border">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transaction.detailtransaksi.map((detail) => (
-                  <tr key={detail.id_detail}>
-                    <td className="py-2 px-4 border">
-                      {detail.produk.nama_produk}
-                    </td>
-                    <td className="py-2 px-4 border">{detail.jumlah}</td>
-                    <td className="py-2 px-4 border">{detail.harga}</td>
-                    <td className="py-2 px-4 border">{detail.subtotal}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
-      </div> */}
     </div>
   );
 };

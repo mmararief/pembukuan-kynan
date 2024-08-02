@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+
+import { SocketProvider } from "@/lib/SocketContext";
 import Header from "@/components/header";
 import HeaderMobile from "@/components/header-mobile";
 import SideNav from "@/components/side-nav";
@@ -34,17 +36,19 @@ export default function RootLayout({
         )}
       >
         <SpeedInsights />
-        <div className="flex">
-          <SideNav />
-          <main className="flex-1">
-            <MarginWidthWrapper>
-              <Header />
-              <HeaderMobile />
-              <PageWrapper>{children}</PageWrapper>
-            </MarginWidthWrapper>
-          </main>
-          <Toaster />
-        </div>
+        <SocketProvider>
+          <div className="flex">
+            <SideNav />
+            <main className="flex-1">
+              <MarginWidthWrapper>
+                <Header />
+                <HeaderMobile />
+                <PageWrapper>{children}</PageWrapper>
+              </MarginWidthWrapper>
+            </main>
+            <Toaster />
+          </div>
+        </SocketProvider>
       </body>
     </html>
   );

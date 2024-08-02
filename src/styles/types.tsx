@@ -45,7 +45,7 @@ export interface Transaksi {
   detailtransaksi: DetailTransaksi[];
 }
 
-interface PaymentMethod {
+export interface PaymentMethod {
   id: number;
   nama_bank: string;
   no_rekening: string;

@@ -1,59 +1,40 @@
 // pages/index.tsx
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useSocket } from "@/lib/SocketContext";
 import { ChartHpp } from "@/components/ChartHpp";
 import { ChartPopuler } from "@/components/ChartPopuler";
 import SalesCard from "@/components/SalesCard";
 import { TabelTransaksi } from "@/components/TabelTransaksi";
 import WaStatus from "@/components/WaStatus";
-import io, { Socket } from "socket.io-client";
 import { Transaksi } from "@/styles/types"; // Import the shared type
-
-import { toast } from "@/components/ui/use-toast";
 import { AddTransactionModal } from "@/components/AddTransactionModal";
+import { checkLoginStatus } from "@/lib/auth";
+import { useEffect, useState } from "react";
 const Home: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaksi[]>([]);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const notificationSoundRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    // Fetch initial transaction data
-    fetch("/api/transaksi")
-      .then((response) => response.json())
-      .then((data) => setTransactions(data))
-      .catch((error) => {
-        console.error("Error fetching transaction data:", error);
-      });
-
-    const weebhookUrl = `${apiUrl}`;
-    const socket: Socket = io(weebhookUrl, {
-      transports: ["websocket", "polling"],
-    });
-
-    console.log("Connecting to Socket.io...");
-    socket.on("newTransaction", (data: Transaksi) => {
-      console.log("New transaction received:", data);
-      toast({
-        description: "Ada pesanan baru !",
-      });
-      setTransactions((prevTransactions) => [data, ...prevTransactions]);
-      // Play the notification sound
-      if (notificationSoundRef.current) {
-        notificationSoundRef.current.play().catch((error) => {
-          console.error("Error playing notification sound:", error);
-        });
-      }
-    });
-
-    // Cleanup on unmount
-    return () => {
-      socket.off("newTransaction");
-    };
-  }, [apiUrl]);
+  const { transactions, setTransactions } = useSocket();
+  const [user, setUser] = useState(null);
 
   const handleSave = (newTransaction: Transaksi) => {
     setTransactions([newTransaction, ...transactions]);
   };
+
+  // useEffect(() => {
+  //   async function fetchUser() {
+  //     try {
+  //       const loggedInUser = await checkLoginStatus();
+  //       setUser(loggedInUser);
+  //     } catch (error) {
+  //       console.error(error);
+  //       window.location.href = "http://192.168.100.199/kynan/login.php";
+  //     }
+  //   }
+
+  //   fetchUser();
+  // }, []);
+
+  // if (!user) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
     <div className="p-4 space-y-8">
@@ -85,12 +66,6 @@ const Home: React.FC = () => {
           setTransactions={setTransactions}
         />
       </div>
-      {/* Audio element for notification sound */}
-      <audio
-        ref={notificationSoundRef}
-        src="/mixkit-correct-answer-tone-2870.wav"
-        preload="auto"
-      />
     </div>
   );
 };

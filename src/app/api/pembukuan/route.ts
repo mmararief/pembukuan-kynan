@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { headers } from 'next/headers';
 
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
+  const headersList = headers();
+  const referer = headersList.get('referer');
+  console.log(referer);
+
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
@@ -19,6 +24,7 @@ export async function GET(req: NextRequest) {
           gte: new Date(startDate),
           lte: new Date(endDate),
         },
+        status: "Selesai"
       },
       include: {
         detailtransaksi: {
@@ -28,7 +34,7 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: {
-        tanggal: 'asc',
+        tanggal: 'desc',
       },
     });
 
@@ -36,29 +42,32 @@ export async function GET(req: NextRequest) {
     let saldo = 0;
 
     transactions.forEach(transaction => {
-      const totalDebit = transaction.detailtransaksi.reduce((total, detail) => {
-        if (detail.produk.hpp) {
-          total += parseFloat(detail.subtotal.toFixed(2));
-        }
-        return total;
-      }, 0);
+      transaction.detailtransaksi.forEach(detail => {
+        // Convert Decimal to number and handle null values
+        const debit = parseFloat(detail.harga.toString()) * detail.jumlah;
+        const credit = detail.produk.hpp ? parseFloat(detail.produk.hpp.toString()) * detail.jumlah : 0;
 
-      const totalKredit = transaction.detailtransaksi.reduce((total, detail) => {
-        if (detail.produk.hpp) {
-          total += parseFloat(detail.produk.hpp.toFixed(2)) * detail.jumlah;
-        }
-        return total;
-      }, 0);
+        // Add debit transaction
+        saldo += debit;
+        pembukuanEntries.push({
+          id: transaction.id_transaksi,
+          tanggal: transaction.tanggal,
+          keterangan: `Penjualan ${detail.produk.nama_produk} x ${detail.jumlah}`,
+          debit: debit.toFixed(2),
+          kredit: '-',
+          saldo: saldo.toFixed(2),
+        });
 
-      saldo += totalKredit - totalDebit;
-
-      pembukuanEntries.push({
-        id: transaction.id_transaksi,
-        tanggal: transaction.tanggal,
-        keterangan: `Transaksi ID: ${transaction.id_transaksi}`,
-        debit: totalDebit,
-        kredit: totalKredit,
-        saldo: saldo,
+        // Subtract credit transaction
+        saldo -= credit;
+        pembukuanEntries.push({
+          id: transaction.id_transaksi,
+          tanggal: transaction.tanggal,
+          keterangan: `Pembelian Bahan ${detail.produk.nama_produk} x ${detail.jumlah}`,
+          debit: '-',
+          kredit: credit.toFixed(2),
+          saldo: saldo.toFixed(2),
+        });
       });
     });
 

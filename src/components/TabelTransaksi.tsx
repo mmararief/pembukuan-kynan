@@ -162,7 +162,7 @@ export function TabelTransaksi({
             )
           );
           toast({
-            description: "Pesanan selesai dan faktur berhasil dikirim!",
+            description: "Pesanan diproses dan faktur berhasil dikirim!",
           });
         } else {
           alert("Failed to send invoice.");

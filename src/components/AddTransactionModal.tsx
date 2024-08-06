@@ -33,7 +33,7 @@ interface PaymentMethod {
 export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
   const [form, setForm] = useState({
     tanggal: "",
-    via: "",
+    via: "Manual",
     nama: "",
     whatsapp: "",
     alamat: "",

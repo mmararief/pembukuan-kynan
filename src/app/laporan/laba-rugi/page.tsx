@@ -141,7 +141,7 @@ const LabaRugi: React.FC = () => {
             ))}
             <tr>
               <td className="py-2 px-4 text-center border font-bold">
-                Total Pendapatan
+                Total Pendapatan Kotor
               </td>
               <td className="py-2 px-4 border">
                 {formatRupiah(result.revenue)}

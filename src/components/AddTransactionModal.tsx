@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "./ui/use-toast";
 import { Transaksi, Produk } from "@/styles/types";
-
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 interface AddTransactionModalProps {
   onSave: (transaction: Transaksi) => void;
 }
@@ -177,6 +177,7 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
     };
 
     try {
+      // Save the transaction
       const response = await fetch("/api/transaksi", {
         method: "POST",
         headers: {
@@ -188,6 +189,27 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
       if (response.ok) {
         const newTransaction = await response.json();
         onSave(newTransaction);
+
+        // Transform the transaction for the invoice API
+        const transformedTransaction = transformTransaction(newTransaction);
+
+        // Send the invoice
+        const sendInvoiceResponse = await fetch(`${apiUrl}/send-invoice`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(transformedTransaction),
+        });
+
+        if (sendInvoiceResponse.ok) {
+          toast({
+            description: "Pesanan diproses dan faktur berhasil dikirim!",
+          });
+        } else {
+          alert("Gagal mengirim faktur.");
+        }
+
         toast({
           description: "Transaksi berhasil disimpan.",
         });
@@ -214,6 +236,28 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
       });
     }
   };
+
+  // Function to transform transaction object
+  const transformTransaction = (transaction: Transaksi) => {
+    return {
+      id_transaksi: String(transaction.id_transaksi),
+      tanggal: transaction.tanggal,
+      via: transaction.via,
+      nama: transaction.nama,
+      whatsapp: transaction.whatsapp,
+      alamat: transaction.alamat,
+      metode_pembayaran: transaction.metode_pembayaran,
+      status: transaction.status,
+      total: Number(transaction.total),
+      details: transaction.detailtransaksi.map((item) => ({
+        nama_produk: item.produk.nama_produk,
+        jumlah: item.jumlah,
+        harga_satuan: Number(item.harga),
+        subtotal: Number(item.subtotal),
+      })),
+    };
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -279,7 +323,7 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
                       {method.nama_pemilik})
                     </SelectItem>
                   ))}
-                  <SelectItem value={"tunai"}>Tunai</SelectItem>
+                  <SelectItem value={"Tunai"}>Tunai</SelectItem>
                 </SelectContent>
               </Select>
             </div>

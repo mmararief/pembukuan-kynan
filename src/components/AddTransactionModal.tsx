@@ -279,6 +279,7 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
                       {method.nama_pemilik})
                     </SelectItem>
                   ))}
+                  <SelectItem value={"tunai"}>Tunai</SelectItem>
                 </SelectContent>
               </Select>
             </div>

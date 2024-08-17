@@ -61,7 +61,7 @@ export const exportLabaRugiToExcel = (
       amount,
     ]),
     ["Total Beban", totalCost],
-    ["Laba/Rugi Bersih", totalRevenue - totalCost],
+    [`Laba/Rugi Bersih`, totalRevenue - totalCost],
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(profitLossData);

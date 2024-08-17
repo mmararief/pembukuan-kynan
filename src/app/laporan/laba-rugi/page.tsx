@@ -167,7 +167,9 @@ const LabaRugi: React.FC = () => {
               <td className="py-2 px-4 border">{formatRupiah(result.cost)}</td>
             </tr>
             <tr>
-              <td className="py-2 px-4 border font-bold">Laba/Rugi Bersih</td>
+              <td className="py-2 px-4 border font-bold">
+                {result.profitLoss >= 0 ? "Laba Bersih" : "Rugi Bersih"}
+              </td>
               <td className="py-2 px-4 border">
                 {formatRupiah(result.profitLoss)}
               </td>

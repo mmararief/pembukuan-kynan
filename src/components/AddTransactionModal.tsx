@@ -278,6 +278,7 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
               placeholder="Tanggal"
               value={form.tanggal}
               onChange={handleChange}
+              required
             />
             {/* <Input
               name="via"
@@ -290,18 +291,21 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
               placeholder="Nama"
               value={form.nama}
               onChange={handleChange}
+              required
             />
             <Input
               name="whatsapp"
               placeholder="WhatsApp"
               value={form.whatsapp}
               onChange={handleChange}
+              required
             />
             <Input
               name="alamat"
               placeholder="Alamat"
               value={form.alamat}
               onChange={handleChange}
+              required
             />
             <div>
               <label>Metode Pembayaran:</label>
@@ -312,6 +316,7 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
                     metode_pembayaran: value,
                   }));
                 }}
+                required
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih metode pembayaran" />
@@ -344,6 +349,7 @@ export function AddTransactionModal({ onSave }: AddTransactionModalProps) {
                     );
                   }
                 }}
+                required
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih produk" />

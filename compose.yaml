@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://root:test123@db:3306/kynan
+    depends_on:
+      - db
+      - whatsapp-api
+      # - php-app
+    command: npm run start
+
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: test123
+      MYSQL_DATABASE: kynan
+    ports:
+      - "3306:3306"
+
+  whatsapp-api:
+    image: mmararief/whatsapp-api
+    restart: always
+    environment:
+      PORT: 8000
+    ports:
+      - "8000:8000"
+
+  # php-app:
+  #   image: mmararief/kynan-shop
+  #   restart: always
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - db 

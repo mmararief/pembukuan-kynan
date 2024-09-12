@@ -33,34 +33,28 @@ const QRCodeDisplay: React.FC = () => {
       setError("API URL is not defined");
       return;
     }
+
     const socket: Socket = io(apiUrl, {
       transports: ["websocket", "polling"],
     });
 
     socket.on("connect", () => {
-      console.log("Connected to server");
       setError(null);
     });
 
     socket.on("qr", (qr: string) => {
-      console.log("QR code received:", qr);
       setQRCode(qr);
     });
 
     socket.on("authenticated", (status: boolean) => {
       setIsAuthenticated(status);
       if (status) {
-        setQRCode("");
+        setQRCode(""); // Clear the QR code if authenticated
         toast({
           title: "Berhasil!",
           description: "Anda telah berhasil terhubung ke WhatsApp.",
         });
       }
-    });
-
-    socket.on("connect_error", (err) => {
-      setError("Failed to connect to the server.");
-      console.error("Connection error:", err);
     });
 
     return () => {
